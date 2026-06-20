@@ -1,0 +1,32 @@
+{
+  "name": "okta-mcp-server",
+  "version": "1.0.0",
+  "description": "Read-only Okta and Slack MCP tools for IT operations demos.",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx --env-file=.env src/index.ts",
+    "build": "tsc",
+    "start": "node --env-file=.env dist/index.js",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "mcp",
+    "okta",
+    "slack",
+    "iam",
+    "it-operations"
+  ],
+  "author": "Andre O'Sullivan",
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.0",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
+  }
+}
