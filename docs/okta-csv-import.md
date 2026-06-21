@@ -78,8 +78,7 @@ Directory > Groups > app-contractor-default-users > People
 
 ## Notes
 
-- The CSV uses `@inkspiretee.com` addresses.
+- Use placeholder or demo-domain email addresses, not real employee data.
 - If your Okta org requires real email delivery, use activation settings carefully.
 - If Okta rejects a column, download the error report and compare the header with the Okta User profile variable name.
 - Okta's CSV import template is based on your current Okta user profile. If your downloaded template uses different variable names, copy the rows from this file into that template and keep Okta's header row.
-

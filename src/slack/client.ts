@@ -25,6 +25,7 @@ export async function listSlackUsers(): Promise<SlackUser[]> {
   do {
     const url = new URL("https://slack.com/api/users.list");
     url.searchParams.set("limit", "200");
+    if (config.slackTeamId) url.searchParams.set("team_id", config.slackTeamId);
     if (cursor) url.searchParams.set("cursor", cursor);
 
     const response = await fetch(url, {

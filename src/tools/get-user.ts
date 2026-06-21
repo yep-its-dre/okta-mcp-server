@@ -1,20 +1,19 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { getUser } from "../okta/client.js";
 import { writeAuditEntry } from "../security/audit.js";
 import { sanitizeError, sanitizeOutput } from "../security/sanitize.js";
-import { validateEmail } from "../security/validate.js";
 import { textResult } from "./format.js";
+import { resolveUser } from "./resolve-user.js";
 
 export function registerGetUser(server: McpServer): void {
   server.tool(
     "get_user",
-    "Look up an Okta user by email/login and return sanitized profile/status fields.",
-    { email: z.string().email() },
-    async ({ email }) => {
-      const normalized = validateEmail(email);
+    "Look up an Okta user by email/login or by a name query and return sanitized profile/status fields. Use email when available; use query for names.",
+    { email: z.string().email().optional(), query: z.string().optional() },
+    async ({ email, query }) => {
+      const target = email ?? query ?? "unknown";
       try {
-        const user = await getUser(normalized);
+        const { user, target: resolvedTarget, resolution } = await resolveUser({ email, query });
         const output = sanitizeOutput({
           id: user.id,
           status: user.status,
@@ -26,13 +25,14 @@ export function registerGetUser(server: McpServer): void {
           department: user.profile.department,
           title: user.profile.title,
           lastLogin: user.lastLogin,
-          passwordChanged: user.passwordChanged
+          passwordChanged: user.passwordChanged,
+          resolvedFrom: resolution
         });
-        await writeAuditEntry({ tool: "get_user", mode: "read", target: normalized, outcome: "success" });
+        await writeAuditEntry({ tool: "get_user", mode: "read", target: resolvedTarget, outcome: "success" });
         return textResult(output);
       } catch (error) {
         const message = sanitizeError(error);
-        await writeAuditEntry({ tool: "get_user", mode: "read", target: normalized, outcome: "error", message });
+        await writeAuditEntry({ tool: "get_user", mode: "read", target, outcome: "error", message });
         return textResult({ error: message });
       }
     }

@@ -1,5 +1,8 @@
 import { config } from "../config.js";
 import type { OktaApplication, OktaGroup, OktaLogEvent, OktaUser } from "./types.js";
+import { readFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { importPKCS8, SignJWT } from "jose";
 
 type TokenState = {
   accessToken: string;
@@ -18,14 +21,24 @@ async function getAccessToken(): Promise<string> {
     grant_type: "client_credentials",
     scope: "okta.users.read okta.groups.read okta.logs.read okta.apps.read"
   });
-  const basic = Buffer.from(`${config.oktaClientId}:${config.oktaClientSecret}`).toString("base64");
+  const headers: Record<string, string> = {
+    "Content-Type": "application/x-www-form-urlencoded",
+    Accept: "application/json"
+  };
+
+  if (config.oktaPrivateKey || config.oktaPrivateKeyFile) {
+    body.set("client_id", config.oktaClientId);
+    body.set("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
+    body.set("client_assertion", await createClientAssertion());
+  } else if (config.oktaClientSecret) {
+    headers.Authorization = `Basic ${Buffer.from(`${config.oktaClientId}:${config.oktaClientSecret}`).toString("base64")}`;
+  } else {
+    throw new Error("No Okta client authentication method configured");
+  }
+
   const response = await fetch(`https://${config.oktaDomain}/oauth2/v1/token`, {
     method: "POST",
-    headers: {
-      Authorization: `Basic ${basic}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-      Accept: "application/json"
-    },
+    headers,
     body
   });
 
@@ -39,6 +52,32 @@ async function getAccessToken(): Promise<string> {
     expiresAt: now + data.expires_in * 1000
   };
   return data.access_token;
+}
+
+async function createClientAssertion(): Promise<string> {
+  const tokenEndpoint = `https://${config.oktaDomain}/oauth2/v1/token`;
+  const privateKeyPem = config.oktaPrivateKeyFile
+    ? await readFile(config.oktaPrivateKeyFile, "utf8")
+    : config.oktaPrivateKey?.replace(/\\n/g, "\n");
+
+  if (!privateKeyPem) {
+    throw new Error("OKTA_PRIVATE_KEY or OKTA_PRIVATE_KEY_FILE is required for private_key_jwt");
+  }
+
+  const key = await importPKCS8(privateKeyPem, "RS256");
+  const now = Math.floor(Date.now() / 1000);
+  return new SignJWT({})
+    .setProtectedHeader({
+      alg: "RS256",
+      kid: config.oktaKeyId
+    })
+    .setIssuer(config.oktaClientId)
+    .setSubject(config.oktaClientId)
+    .setAudience(tokenEndpoint)
+    .setIssuedAt(now)
+    .setExpirationTime(now + 300)
+    .setJti(randomUUID())
+    .sign(key);
 }
 
 async function oktaGet<T>(path: string, query?: URLSearchParams): Promise<T> {
@@ -62,6 +101,14 @@ async function oktaGet<T>(path: string, query?: URLSearchParams): Promise<T> {
 
 export async function getUser(login: string): Promise<OktaUser> {
   return oktaGet<OktaUser>(`/api/v1/users/${encodeURIComponent(login)}`);
+}
+
+export async function searchUsers(query: string, limit = 10): Promise<OktaUser[]> {
+  const params = new URLSearchParams({
+    q: query,
+    limit: String(limit)
+  });
+  return oktaGet<OktaUser[]>("/api/v1/users", params);
 }
 
 export async function getUserGroups(userId: string): Promise<OktaGroup[]> {

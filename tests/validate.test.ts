@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateEmail, validateEventType, validateLimit, validateLogQuery } from "../src/security/validate.js";
+import { validateEmail, validateEventType, validateLimit, validateLogQuery, validateUserQuery } from "../src/security/validate.js";
 
 describe("validateEmail", () => {
   it("normalizes valid email addresses", () => {
@@ -18,6 +18,16 @@ describe("validateLimit", () => {
 
   it("rejects out-of-range limits", () => {
     expect(() => validateLimit(101, 25, 1, 100)).toThrow("between 1 and 100");
+  });
+});
+
+describe("validateUserQuery", () => {
+  it("allows human-readable name searches", () => {
+    expect(validateUserQuery(" Jane Smith ")).toBe("Jane Smith");
+  });
+
+  it("rejects empty searches", () => {
+    expect(() => validateUserQuery(" ")).toThrow("at least 2 characters");
   });
 });
 

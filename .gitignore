@@ -3,4 +3,5 @@ dist/
 .env
 audit.log
 *.log
+keys/
 .DS_Store

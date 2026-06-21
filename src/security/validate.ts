@@ -24,6 +24,24 @@ export function validateEmail(email: string): string {
   return normalized;
 }
 
+export function isEmailLike(value: string): boolean {
+  return EMAIL_RE.test(value.trim().toLowerCase());
+}
+
+export function validateUserQuery(query: string): string {
+  const normalized = query.trim();
+  if (normalized.length < 2) {
+    throw new Error("user query must be at least 2 characters");
+  }
+  if (normalized.length > 100) {
+    throw new Error("user query must be 100 characters or fewer");
+  }
+  if (!/^[\x20-\x7E]+$/.test(normalized)) {
+    throw new Error("user query must contain printable ASCII only");
+  }
+  return normalized;
+}
+
 export function validateLimit(limit: unknown, defaultValue = 25, min = 1, max = 100): number {
   if (limit === undefined || limit === null) return defaultValue;
   if (typeof limit !== "number" || !Number.isInteger(limit)) {

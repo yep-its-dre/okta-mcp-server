@@ -8,7 +8,12 @@
     "dev": "tsx --env-file=.env src/index.ts",
     "build": "tsc",
     "start": "node --env-file=.env dist/index.js",
+    "slack:bot": "tsx --env-file=.env src/slack-bot.ts",
+    "slack:bot:start": "node --env-file=.env dist/slack-bot.js",
     "check:connections": "tsx --env-file=.env scripts/check-connections.ts",
+    "generate:okta-key": "tsx scripts/generate-okta-key.ts",
+    "debug:okta-assertion": "tsx --env-file=.env scripts/debug-okta-assertion.ts",
+    "slack:auth-test": "tsx --env-file=.env scripts/slack-auth-test.ts",
     "test": "vitest run"
   },
   "keywords": [
@@ -22,6 +27,8 @@
   "license": "ISC",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@slack/bolt": "^4.7.3",
+    "jose": "^6.2.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {

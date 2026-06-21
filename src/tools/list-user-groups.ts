@@ -1,20 +1,20 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { getUser, getUserGroups } from "../okta/client.js";
+import { getUserGroups } from "../okta/client.js";
 import { writeAuditEntry } from "../security/audit.js";
 import { sanitizeError, sanitizeOutput } from "../security/sanitize.js";
-import { validateEmail } from "../security/validate.js";
 import { textResult } from "./format.js";
+import { resolveUser } from "./resolve-user.js";
 
 export function registerListUserGroups(server: McpServer): void {
   server.tool(
     "list_user_groups",
-    "List Okta groups for a user and show group names, descriptions, and group types.",
-    { email: z.string().email() },
-    async ({ email }) => {
-      const normalized = validateEmail(email);
+    "List Okta groups for a user by email/login or name query and show group names, descriptions, and group types. Use email when available; use query for names.",
+    { email: z.string().email().optional(), query: z.string().optional() },
+    async ({ email, query }) => {
+      const target = email ?? query ?? "unknown";
       try {
-        const user = await getUser(normalized);
+        const { user, target: resolvedTarget } = await resolveUser({ email, query });
         const groups = await getUserGroups(user.id);
         const output = sanitizeOutput(
           groups.map((group) => ({
@@ -24,11 +24,11 @@ export function registerListUserGroups(server: McpServer): void {
             type: group.type
           }))
         );
-        await writeAuditEntry({ tool: "list_user_groups", mode: "read", target: normalized, outcome: "success" });
+        await writeAuditEntry({ tool: "list_user_groups", mode: "read", target: resolvedTarget, outcome: "success" });
         return textResult(output);
       } catch (error) {
         const message = sanitizeError(error);
-        await writeAuditEntry({ tool: "list_user_groups", mode: "read", target: normalized, outcome: "error", message });
+        await writeAuditEntry({ tool: "list_user_groups", mode: "read", target, outcome: "error", message });
         return textResult({ error: message });
       }
     }

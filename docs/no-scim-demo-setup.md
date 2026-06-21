@@ -95,7 +95,7 @@ For a smaller manual setup, create these users directly in Okta.
 Create these users manually in Okta. Use email addresses that exist in Slack when possible so the Slack lookup can match.
 
 ```text
-eng.employee@inkspiretee.com
+eng.employee@example.com
 User Type: Employee
 Department: Engineering
 Title: Software Engineer
@@ -103,7 +103,7 @@ Expected groups: app-default-users, dept-engineering, app-github-users
 ```
 
 ```text
-sales.employee@inkspiretee.com
+sales.employee@example.com
 User Type: Employee
 Department: Sales
 Title: Account Executive
@@ -111,7 +111,7 @@ Expected groups: app-default-users
 ```
 
 ```text
-contractor.user@inkspiretee.com
+contractor.user@example.com
 User Type: Contractor
 Department: Engineering
 Title: Contractor
@@ -133,7 +133,7 @@ okta.logs.read
 okta.apps.read
 ```
 
-Store the client ID and client secret in `.env`.
+Store the client ID and private key configuration in `.env`. See `docs/okta-service-app-private-key.md`.
 
 ## Slack Bot Token
 
@@ -142,6 +142,13 @@ Use an org-level Slack app bot token with:
 ```text
 users:read
 users:read.email
+```
+
+If you run the optional Slack bot UI, also grant:
+
+```text
+app_mentions:read
+chat:write
 ```
 
 Store it in `.env` as:
