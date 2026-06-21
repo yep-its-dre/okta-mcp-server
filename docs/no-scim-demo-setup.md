@@ -78,6 +78,20 @@ app-contractor-default-users
 
 ## Demo Users
 
+For a larger import, use:
+
+```text
+data/okta-demo-users.csv
+```
+
+Instructions are in:
+
+```text
+docs/okta-csv-import.md
+```
+
+For a smaller manual setup, create these users directly in Okta.
+
 Create these users manually in Okta. Use email addresses that exist in Slack when possible so the Slack lookup can match.
 
 ```text
@@ -149,4 +163,3 @@ npm test
 ## Recording Prompts
 
 Use `sample-prompts.md`.
-
