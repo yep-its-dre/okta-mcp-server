@@ -8,6 +8,7 @@
     "dev": "tsx --env-file=.env src/index.ts",
     "build": "tsc",
     "start": "node --env-file=.env dist/index.js",
+    "check:connections": "tsx --env-file=.env scripts/check-connections.ts",
     "test": "vitest run"
   },
   "keywords": [

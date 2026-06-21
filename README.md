@@ -138,6 +138,8 @@ Example:
 
 See [sample-prompts.md](./sample-prompts.md).
 
+If Slack SCIM is unavailable, use the manual setup path in [docs/no-scim-demo-setup.md](./docs/no-scim-demo-setup.md).
+
 Recommended videos:
 
 1. Okta user/group/audit investigation.
@@ -152,4 +154,3 @@ Recommended videos:
 - Every tool call writes to a local JSONL audit log.
 - Slack investigation uses read-only user APIs.
 - This is intended for a developer/demo org, not production administration.
-
